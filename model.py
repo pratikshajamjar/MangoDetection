@@ -29,7 +29,7 @@ color_map = {
 }
 
 # App title
-st.markdown("<h1 style='text-align: center; color: #FF6347;'>Mango Ripeness Detection</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center; color: #FF6347;'>Fruit Ripeness Detection</h1>", unsafe_allow_html=True)
 
 # Detection + drawing function
 def detect_and_draw(model, image_np, class_list, scale=0.5):
@@ -42,13 +42,14 @@ def detect_and_draw(model, image_np, class_list, scale=0.5):
     for result in results:
         for box in result.boxes:
             x1, y1, x2, y2 = map(int, box.xyxy[0].tolist())
+            conf = float(box.conf[0].item())
             cls = int(box.cls[0].item())
 
             class_name = class_list.get(cls, f"Unknown-{cls}")
             object_counts[class_name] = object_counts.get(class_name, 0) + 1
             total_objects += 1
 
-            label = f"{class_name}"
+            label = f"{class_name} ({conf:.2f})"
             color = color_map.get(class_name.lower(), color_map["default"])
 
             cv2.rectangle(image_bgr, (x1, y1), (x2, y2), color, 2)
@@ -73,7 +74,7 @@ if uploaded_file is not None:
     image_np = np.array(image)
 
     with st.spinner("Detecting ripeness..."):
-        # time.sleep(1)
+        time.sleep(1)
         output_image, object_counts, total_objects = detect_and_draw(model, image_np, class_list)
 
     # Side-by-side display
@@ -87,7 +88,7 @@ if uploaded_file is not None:
         st.image(output_image, use_container_width=True)
 
     # Detection summary
-    st.markdown("Detection Summary")
+    st.markdown("### Detection Summary")
     if total_objects == 0:
         st.warning("No fruits detected in the image.")
     else:
